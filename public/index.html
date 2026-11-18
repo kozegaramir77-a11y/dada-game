@@ -35,4 +35,87 @@ socket.on('match-found',d=>{room=d.room;document.getElementById('status').textCo
 socket.on('battle-update',d=>document.getElementById('status').textContent='حرکت دریافت شد: '+d.move);
 socket.on('opponent-left',()=>{room=null;document.getElementById('status').textContent='حریف از بازی خارج شد.';});
 function move(){if(!room){document.getElementById('status').textContent='اول حریف پیدا کن.';return;}socket.emit('battle-move',{room,move:'حمله ⚔️'});}
-</script></body></html>
+</script>
+
+<style>
+#dada-clash{background:#172b25;color:#fff;padding:18px;border-radius:15px;margin:20px auto;text-align:center;max-width:600px}
+#dada-clash h2{color:#ffd45c}
+#dada-clash .resources{display:flex;justify-content:space-around;gap:8px;flex-wrap:wrap;margin:15px}
+#dada-clash button{background:#e6a52c;color:#241900;border:0;border-radius:9px;padding:11px;margin:5px;font-weight:bold}
+#dada-clash .building{background:#29483a;padding:12px;margin:9px;border-radius:10px}
+#dada-clash #clash-status{color:#aaffb9;margin-top:12px}
+</style>
+
+<section id="dada-clash">
+  <h2>⚔️ DADA CLASH</h2>
+  <p>دهکده خودت را بساز و به دشمن حمله کن!</p>
+
+  <div class="resources">
+    <b>🪙 طلا: <span id="clash-gold">500</span></b>
+    <b>💧 اکسیر: <span id="clash-elixir">300</span></b>
+  </div>
+
+  <div class="building">
+    🏰 ساختمان اصلی
+    <p>سطح: <span id="clash-level">1</span></p>
+    <button onclick="clashUpgrade()">ارتقای ساختمان (۱۰۰ طلا)</button>
+  </div>
+
+  <div class="building">
+    🪙 معدن طلا
+    <p>برای جمع‌آوری طلا کلیک کن</p>
+    <button onclick="clashCollect()">جمع‌آوری ۵۰ طلا</button>
+  </div>
+
+  <div class="building">
+    ⚔️ اردوگاه سربازان
+    <p>به دشمن حمله کن!</p>
+    <button onclick="clashAttack()">حمله به دشمن (۵۰ اکسیر)</button>
+  </div>
+
+  <p id="clash-status">به دهکده خودت خوش آمدی! 🏰</p>
+</section>
+
+<script>
+(function(){
+ let gold=500, elixir=300, level=1;
+
+ function update(){
+  document.getElementById('clash-gold').textContent=gold;
+  document.getElementById('clash-elixir').textContent=elixir;
+  document.getElementById('clash-level').textContent=level;
+ }
+
+ window.clashUpgrade=function(){
+  if(gold<100){
+   document.getElementById('clash-status').textContent='طلای کافی نداری!';
+   return;
+  }
+  gold-=100;
+  level++;
+  document.getElementById('clash-status').textContent='🏰 ساختمان ارتقا یافت!';
+  update();
+ };
+
+ window.clashCollect=function(){
+  gold+=50;
+  document.getElementById('clash-status').textContent='🪙 ۵۰ طلا گرفتی!';
+  update();
+ };
+
+ window.clashAttack=function(){
+  if(elixir<50){
+   document.getElementById('clash-status').textContent='اکسیر کافی نداری!';
+   return;
+  }
+  elixir-=50;
+  let reward=Math.floor(Math.random()*101)+50;
+  gold+=reward;
+  document.getElementById('clash-status').textContent='⚔️ پیروز شدی! '+reward+' طلا گرفتی!';
+  update();
+ };
+
+ update();
+})();
+</script>
+</body></html>

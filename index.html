@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DADA GAME</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101827;color:#fff;font-family:tahoma,Arial,sans-serif}
+main{max-width:850px;margin:35px auto;padding:20px}.hero{background:linear-gradient(135deg,#263b68,#6d35a8);padding:28px;border-radius:22px;text-align:center}
+h1{font-size:38px;margin:5px}.sub{color:#dbeafe}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:20px}
+.card{background:#1d293b;border:1px solid #34445e;border-radius:16px;padding:18px}
+button{background:#f5b942;color:#201500;border:0;border-radius:10px;padding:12px 18px;font-weight:bold;cursor:pointer}
+#status{margin-top:14px;color:#b9d5ff;min-height:28px}input{padding:10px;border-radius:8px;border:1px solid #60708b;background:#101827;color:white;width:100%;margin:8px 0}
+</style></head>
+<body><main>
+<section class="hero"><h1>🎮 DADA GAME</h1><p class="sub">بازی کن، رکورد بزن و با دیگران رقابت کن!</p></section>
+<section class="grid">
+<div class="card"><h2>🔢 حدس عدد</h2><p>عدد بین ۱ تا ۲۰ را پیدا کن.</p><input id="guess" type="number" min="1" max="20" placeholder="عدد حدسی"><button onclick="guess()">حدس بزن</button><p id="guessResult"></p></div>
+<div class="card"><h2>⭕ دوز</h2><p>یک بازی دونفره ساده با خودت.</p><div id="board" style="font-size:28px;line-height:2.1;letter-spacing:12px;cursor:pointer" onclick="playTic(event)">⬜⬜⬜<br>⬜⬜⬜<br>⬜⬜⬜</div><button onclick="resetTic()">شروع دوباره</button><p id="ticResult"></p></div>
+<div class="card"><h2>⚔️ نبرد آنلاین</h2><p>برای پیدا کردن حریف آنلاین وارد صف شو.</p><button onclick="findMatch()">پیدا کردن حریف</button><div id="status"></div><button onclick="move()">حرکت حمله</button></div>
+<div class="card"><h2>🧠 حافظه</h2><p>این بخش به‌زودی با بازی حافظه تکمیل می‌شود.</p></div>
+</section></main>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+let answer=Math.floor(Math.random()*20)+1;
+function guess(){let n=Number(document.getElementById('guess').value);document.getElementById('guessResult').textContent=n===answer?'آفرین! درست حدس زدی 🎉':n<answer?'بالاتر!':'پایین‌تر!';if(n===answer)answer=Math.floor(Math.random()*20)+1;}
+let cells=Array(9).fill(''),turn='X';
+function draw(){document.getElementById('board').innerHTML=[0,1,2].map(r=>cells.slice(r*3,r*3+3).map((v,c)=>`<span data-i="${r*3+c}">${v||'⬜'}</span>`).join(' ')).join('<br>');}
+function playTic(e){let i=Number(e.target.dataset.i);if(!Number.isInteger(i)||cells[i])return;cells[i]=turn;turn=turn==='X'?'O':'X';draw();}
+function resetTic(){cells=Array(9).fill('');turn='X';draw();document.getElementById('ticResult').textContent='';}
+draw();
+const socket=io();let room=null;
+function findMatch(){document.getElementById('status').textContent='در حال جستجوی حریف...';socket.emit('find-match');}
+socket.on('waiting',()=>document.getElementById('status').textContent='در صف انتظار هستی؛ منتظر حریف بمان.');
+socket.on('match-found',d=>{room=d.room;document.getElementById('status').textContent='حریف پیدا شد! بازی شروع شد 🎉';});
+socket.on('battle-update',d=>document.getElementById('status').textContent='حرکت دریافت شد: '+d.move);
+socket.on('opponent-left',()=>{room=null;document.getElementById('status').textContent='حریف از بازی خارج شد.';});
+function move(){if(!room){document.getElementById('status').textContent='اول حریف پیدا کن.';return;}socket.emit('battle-move',{room,move:'حمله ⚔️'});}
+</script></body></html>
